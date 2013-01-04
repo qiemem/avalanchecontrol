@@ -25,6 +25,18 @@ to go
   tick
 end  
 
+to explore
+  no-display
+  if mouse-down? [
+    color-patches-by-option
+    ask patch mouse-xcor mouse-ycor [set sim-grains (sim-grains + 1)]
+    let avalanche stabilize
+    ask patches [reset-sim-grains]
+    ask avalanche [set pcolor white]
+  ]
+  display
+end
+
 to-report stabilize
   let fired no-patches
   let active (patches with [sim-grains > 3])
@@ -66,17 +78,24 @@ end
 to color-both
   color-grains
   ifelse grains >= 3 [
-    set pcolor (scale-color pcolor avalanche-size (- count patches / 4) (count patches))
+    scale-pcolor
   ] [
-    if grains > 0 [set pcolor (pcolor - 4)]
+    if grains > 0 [set pcolor (pcolor - 2)]
   ]
 end
 
 to color-avalanche
   ifelse grains >= 3 [
-    set pcolor scale-color blue avalanche-size 0 (count patches / 6)
+    set pcolor blue
+    scale-pcolor
   ] [
     set pcolor black
+  ]
+end
+
+to scale-pcolor
+  if grains >= 3 [
+    set pcolor scale-color pcolor (log avalanche-size 2) -1 (log (count patches) 2)
   ]
 end
 
@@ -131,14 +150,14 @@ NIL
 1
 
 CHOOSER
-30
-195
-168
-240
+25
+255
+163
+300
 color-by
 color-by
 "grains" "avalanche size" "both"
-1
+2
 
 BUTTON
 95
@@ -158,25 +177,42 @@ NIL
 1
 
 CHOOSER
-30
-145
-168
-190
+25
+205
+163
+250
 drop-location
 drop-location
 "random" "center" "none"
 0
 
 SWITCH
-30
-90
-197
-123
+15
+155
+182
+188
 display-avalanche
 display-avalanche
 0
 1
 -1000
+
+BUTTON
+45
+60
+127
+93
+NIL
+explore
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
