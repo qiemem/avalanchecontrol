@@ -1,24 +1,34 @@
-patches-own [grains sim-grains]
+extensions [ profiler ]
+
+patches-own [grains sim-grains av-size]
+
+globals [av-sizes]
 
 to setup
-  ask patches [ set sim-grains (random 4) ]
+  ca
+  ask patches [ set sim-grains (random 8) ]
   let ignore stabilize
   ask patches [update-grains]
+  ask patches [set av-size avalanche-size]
   color-patches-by-option
+  set av-sizes []
   reset-ticks
 end
 
 to go
   no-display
+  let drop-patch nobody
   if drop-location = "random" [
-    ask one-of patches [set sim-grains (sim-grains + 1)]
+    ask one-of patches [set drop-patch self]
   ]
   if drop-location = "center" [
-    ask patch 0 0 [set sim-grains (sim-grains + 1)]
+    set drop-patch (patch 0 0)
   ]
-    
+  ask drop-patch [set sim-grains (sim-grains + 1)]
   let avalanche stabilize
+  set av-sizes lput (count avalanche) av-sizes
   ask patches [update-grains]
+  ask patches [set av-size avalanche-size]
   color-patches-by-option
   if display-avalanche [ask avalanche [set pcolor white]]
   display
@@ -52,13 +62,17 @@ to-report stabilize
 end
 
 to-report avalanche-size
-  set sim-grains (sim-grains + 1)
-  let avalanche stabilize
-  ask avalanche [
-    reset-sim-grains
-    ask neighbors4 [reset-sim-grains]
+  ifelse sim-grains < 3 [
+    report 0
+  ] [
+    set sim-grains (sim-grains + 1)
+    let avalanche stabilize
+    ask avalanche [
+      reset-sim-grains
+      ask neighbors4 [reset-sim-grains]
+    ]
+    report count avalanche
   ]
-  report count avalanche
 end
 
 to update-grains
@@ -86,7 +100,7 @@ end
 
 to color-avalanche
   ifelse grains >= 3 [
-    set pcolor blue
+    set pcolor red
     scale-pcolor
   ] [
     set pcolor black
@@ -95,7 +109,7 @@ end
 
 to scale-pcolor
   if grains >= 3 [
-    set pcolor scale-color pcolor (log avalanche-size 2) -1 (log (count patches) 2)
+    set pcolor scale-color pcolor (log av-size 2) -1 (log (count patches) 2)
   ]
 end
 
@@ -106,10 +120,10 @@ to color-grains
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
-20
-675
-506
+285
+10
+750
+496
 17
 17
 13.0
@@ -157,7 +171,7 @@ CHOOSER
 color-by
 color-by
 "grains" "avalanche size" "both"
-2
+1
 
 BUTTON
 95
@@ -213,6 +227,101 @@ NIL
 NIL
 NIL
 1
+
+PLOT
+760
+10
+1305
+345
+Criticality
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"mean-av-size" 1.0 0 -2064490 true "" "plot mean [av-size] of patches"
+"max-size-size" 1.0 0 -5825686 true "" "plot max [av-size] of patches"
+"num-zero" 1.0 0 -16777216 true "" "plot count patches with [grains = 0]"
+"num-one" 1.0 0 -10899396 true "" "plot count patches with [grains = 1]"
+"num-two" 1.0 0 -1184463 true "" "plot count patches with [grains = 2]"
+"num-three" 1.0 0 -2674135 true "" "plot count patches with [grains = 3]"
+
+PLOT
+1105
+345
+1305
+495
+plot 2
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 1 -16777216 true "" "histogram [ln av-size] of patches with [av-size > 0]"
+
+PLOT
+760
+345
+960
+495
+plot 3
+mean
+max
+10.0
+200.0
+900.0
+1000.0
+true
+false
+"" ""
+PENS
+"default" 1.0 2 -16777216 true "" "plotxy mean [av-size] of patches max [av-size] of patches"
+
+PLOT
+760
+495
+960
+645
+plot 4
+patches
+max
+500.0
+600.0
+900.0
+1000.0
+true
+false
+"" ""
+PENS
+"default" 1.0 2 -16777216 true "" "plotxy count patches with [grains = 3] max [av-size] of patches"
+
+PLOT
+40
+370
+240
+520
+plot 1
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 2 -16777216 true "" "if ticks mod 10 = 0 and not empty? av-sizes [\n  plot-pen-reset\n  foreach n-values (log (max av-sizes) 2) [?] [\n    let exponent ?\n    plot length filter [? >= 2 ^ exponent and ? < 2 ^ (exponent + 1)] av-sizes\n  ]\n]"
 
 @#$#@#$#@
 ## WHAT IS IT?
