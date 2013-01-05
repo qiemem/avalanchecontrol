@@ -62,17 +62,19 @@ to-report stabilize
 end
 
 to-report avalanche-size
-  ifelse sim-grains < 3 [
+  ifelse grains < 3 [
     report 0
   ] [
     set sim-grains (sim-grains + 1)
     let avalanche stabilize
+    reset-sim-grains
     ask avalanche [
       reset-sim-grains
       ask neighbors4 [reset-sim-grains]
     ]
     report count avalanche
   ]
+  
 end
 
 to update-grains
@@ -122,11 +124,11 @@ end
 GRAPHICS-WINDOW
 285
 10
-750
-496
-17
-17
-13.0
+652
+398
+25
+25
+7.0
 1
 10
 1
@@ -136,10 +138,10 @@ GRAPHICS-WINDOW
 0
 0
 1
--17
-17
--17
-17
+-25
+25
+-25
+25
 1
 1
 1
@@ -171,7 +173,7 @@ CHOOSER
 color-by
 color-by
 "grains" "avalanche size" "both"
-1
+2
 
 BUTTON
 95
